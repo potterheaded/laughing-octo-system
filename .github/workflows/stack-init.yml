@@ -1,0 +1,43 @@
+name: express setup
+on: 
+  workflow_dispatch:
+   inputs:
+    something:
+      required: true
+      
+jobs:
+  stack-initialization:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+
+        - name: Commit files
+          run: |
+            git config --global user.name '${{github.actor}}'
+            git config --global user.email '${{github.actor}}@users.noreply.github.com'
+            git add -A
+            git commit -m "Initial commit"
+            git push
+       
+  create-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - run: git pull
+    
+      - name: move some folders around
+        run: |
+          mv ./instance-contents/README.md ./README.md
+          mv ./instance-contents/stale.yml ./.github/stale.yml
+          rm -r ./instance-contents
+          printf '%s\n%s\n' "## Find your app hosted at ${{ needs.deploy-to-gcp.outputs.app_url }}" "$(cat README.md)" >README.md
+          
+
+      - name: Commit files
+        run: |
+          git config --global user.name '${{github.actor}}'
+          git config --global user.email '${{github.actor}}@users.noreply.github.com'
+          git add -A
+          git commit -m "Added readme."
+          git push
